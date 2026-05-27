@@ -1,0 +1,58 @@
+import { Switch, Route, Router as WouterRouter } from "wouter";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/hooks/use-theme";
+import { SimulatorProvider } from "@/context/simulator-context";
+
+import { Layout } from "@/components/layout";
+import { Dashboard } from "@/pages/dashboard";
+import { AdvancedSettings } from "@/pages/advanced-settings";
+import { Guide } from "@/pages/guide";
+import { Analytics } from "@/pages/analytics";
+import { SmartBot } from "@/pages/smart-bot";
+import OAuthCallback from "@/pages/oauth-callback";
+import { SimulatorChat } from "@/pages/simulator-chat";
+
+const queryClient = new QueryClient();
+
+function Router() {
+  return (
+    <Layout>
+      <Switch>
+        <Route path="/" component={Dashboard} />
+        <Route path="/chat" component={SimulatorChat} />
+        <Route path="/settings" component={AdvancedSettings} />
+        <Route path="/guide" component={Guide} />
+        <Route path="/analytics" component={Analytics} />
+        <Route path="/smart-bot" component={SmartBot} />
+        <Route path="/oauth/callback" component={OAuthCallback} />
+        <Route>
+          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-in fade-in zoom-in duration-500">
+            <h1 className="text-9xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-b from-foreground to-foreground/20">404</h1>
+            <p className="text-2xl font-bold text-muted-foreground">عذراً، الصفحة التي تبحث عنها غير موجودة.</p>
+          </div>
+        </Route>
+      </Switch>
+    </Layout>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <SimulatorProvider>
+            <WouterRouter>
+              <Router />
+            </WouterRouter>
+          </SimulatorProvider>
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+}
+
+export default App;

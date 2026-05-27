@@ -1,0 +1,6 @@
+name = "do3ae-telegram-proxy"
+main = "cloudflare-worker-proxy.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# You can define workspace or environment variables here

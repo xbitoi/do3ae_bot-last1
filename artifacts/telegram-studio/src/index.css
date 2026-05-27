@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Katibeh&family=Cairo:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Reqaa';
+  src: url('/fonts/reqaa.ttf') format('truetype'), local('Aref Ruqaa');
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Naskh';
+  src: url('/fonts/naskh.ttf') format('truetype'), local('Amiri');
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Diwani';
+  src: url('/fonts/diwani.ttf') format('truetype');
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DiwaniJali';
+  src: url('/fonts/diwani_jali.ttf') format('truetype');
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Thuluth';
+  src: url('/fonts/thuluth.ttf') format('truetype'), local('Katibeh');
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nastaliq';
+  src: url('/fonts/nastaliq.ttf') format('truetype'), local('Noto Nastaliq Urdu');
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Shikasteh';
+  src: url('/fonts/shikasteh.ttf') format('truetype');
+  font-weight: normal;
+  font-display: swap;
+}
+
+/*
+ * Tailwind v4 without "inline":
+ * @theme generates :root { --color-*: <value> } AND
+ * utility classes that use var(--color-*).
+ * So .light { --color-*: <new> } on <html> correctly cascades
+ * into all bg-*, text-*, border-* utilities.
+ */
+@theme {
+  --font-sans: 'Cairo', sans-serif;
+  --font-display: 'Cairo', sans-serif;
+
+  /* ── Dark defaults — Rich deep indigo/navy theme ── */
+  --color-background:             hsl(230 30% 7%);
+  --color-foreground:             hsl(220 30% 97%);
+  --color-card:                   hsl(228 28% 11%);
+  --color-card-foreground:        hsl(220 30% 97%);
+  --color-border:                 hsl(228 25% 20%);
+  --color-input:                  hsl(228 25% 18%);
+  --color-primary:                hsl(243 100% 68%);
+  --color-primary-foreground:     hsl(0 0% 100%);
+  --color-secondary:              hsl(228 25% 18%);
+  --color-secondary-foreground:   hsl(220 30% 97%);
+  --color-accent:                 hsl(270 85% 65%);
+  --color-accent-foreground:      hsl(0 0% 100%);
+  --color-muted:                  hsl(228 25% 15%);
+  --color-muted-foreground:       hsl(225 18% 58%);
+  --color-destructive:            hsl(350 84% 60%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-success:                hsl(152 68% 46%);
+  --color-warning:                hsl(40 96% 54%);
+  --color-info:                   hsl(205 88% 50%);
+  --color-sidebar-bg:             hsl(230 32% 8%);
+  --color-sidebar-border:         hsl(228 25% 16%);
+}
+
+/* ─── Light mode overrides (override the :root vars Tailwind generated) ─── */
+.light {
+  --color-background:             hsl(220 20% 96%);
+  --color-foreground:             hsl(222 47% 10%);
+  --color-card:                   hsl(0 0% 100%);
+  --color-card-foreground:        hsl(222 47% 10%);
+  --color-border:                 hsl(220 13% 84%);
+  --color-input:                  hsl(220 13% 84%);
+  --color-primary:                hsl(238 100% 58%);
+  --color-primary-foreground:     hsl(0 0% 100%);
+  --color-secondary:              hsl(220 14% 90%);
+  --color-secondary-foreground:   hsl(222 47% 10%);
+  --color-accent:                 hsl(262 83% 55%);
+  --color-accent-foreground:      hsl(0 0% 100%);
+  --color-muted:                  hsl(220 14% 91%);
+  --color-muted-foreground:       hsl(220 9% 40%);
+  --color-destructive:            hsl(350 84% 50%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-success:                hsl(142 71% 34%);
+  --color-warning:                hsl(36 90% 36%);
+  --color-info:                   hsl(199 89% 34%);
+  --color-sidebar-bg:             hsl(0 0% 100%);
+  --color-sidebar-border:         hsl(220 13% 84%);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground antialiased font-sans selection:bg-primary/20 selection:text-primary;
+    direction: rtl;
+  }
+}
+
+/* ─── Light mode: replace dark gradient panels in analytics/layout ─── */
+.light [class*="from-yellow-950"],
+.light [class*="from-red-950"],
+.light [class*="from-blue-950"],
+.light [class*="from-pink-950"],
+.light [class*="from-purple-950"],
+.light [class*="from-green-950"] {
+  background-image: none !important;
+  background-color: var(--color-card) !important;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-muted-foreground/40; }
+
+/* ─── Hide scrollbar (keep scrollable) ─── */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* ─── iOS safe area bottom padding ─── */
+.pb-safe {
+  padding-bottom: max(0.625rem, env(safe-area-inset-bottom));
+}
+
+/* ─── Sidebar bg via CSS var ─── */
+.sidebar-surface {
+  background-color: var(--color-sidebar-bg);
+  border-color: var(--color-sidebar-border);
+}
+
+/* ─── Smooth transitions for theme switch ─── */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 220ms;
+  transition-timing-function: ease;
+}
+.no-theme-transition,
+.no-theme-transition * {
+  transition: none !important;
+}

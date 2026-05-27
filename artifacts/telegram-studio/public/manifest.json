@@ -1,0 +1,22 @@
+{
+  "short_name": "استوديو البوت",
+  "name": "استوديو بوت تيليغرام لإنتاج الأدعية والمقاطع",
+  "description": "استوديو متكامل لإنتاج وتصميم المقاطع المرئية للأدعية والقرآن الكريم بنظام تيليغرام الذكي",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0d1117",
+  "theme_color": "#2481cc",
+  "display": "standalone",
+  "orientation": "portrait"
+}

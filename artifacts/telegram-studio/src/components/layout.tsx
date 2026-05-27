@@ -6,6 +6,7 @@ import {
 import { cn } from "@/lib/utils";
 import React from "react";
 import { useTheme } from "@/hooks/use-theme";
+import { useToast } from "@/hooks/use-toast";
 
 // ─── Navigation items ─────────────────────────────────────────────────────────
 
@@ -206,8 +207,142 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [location] = useLocation();
+  const { toast } = useToast();
 
   const currentPage = NAV_ITEMS.find((i) => i.href === location);
+
+  // ─── Hugging Face / Space Persistent Storage Sync & Auto-Recovery ──────────
+  React.useEffect(() => {
+    let isMounted = true;
+    let syncInProgress = false;
+
+    async function syncStorage() {
+      if (syncInProgress) return;
+      syncInProgress = true;
+      try {
+        // 1. Fetch current backend state
+        const [credsRes, settingsRes] = await Promise.all([
+          fetch("/api/credentials"),
+          fetch("/api/settings")
+        ]);
+
+        if (!isMounted) return;
+
+        if (!credsRes.ok || !settingsRes.ok) {
+          syncInProgress = false;
+          return;
+        }
+
+        const creds = await credsRes.json();
+        const settings = await settingsRes.json();
+
+        const localCredsRaw = localStorage.getItem("do3ae_bot_credentials");
+        const localSettingsRaw = localStorage.getItem("do3ae_bot_settings");
+
+        // Is the backend completely empty?
+        const backendEmpty = (!creds.botToken || !creds.geminiKey);
+
+        let credsToSync: any = null;
+        let settingsToSync: any = null;
+
+        if (backendEmpty) {
+          if (localCredsRaw) {
+            try {
+              credsToSync = JSON.parse(localCredsRaw);
+            } catch (e) {
+              console.error("Corrupted local credentials:", e);
+            }
+          }
+          if (localSettingsRaw) {
+            try {
+              settingsToSync = JSON.parse(localSettingsRaw);
+            } catch (e) {
+              console.error("Corrupted local settings:", e);
+            }
+          }
+
+          // If we have a valid backup in localStorage, auto-restore/hydrate the backend!
+          if (credsToSync && credsToSync.botToken && credsToSync.geminiKey) {
+            console.log("🔄 Auto-hydrating bot backend from browser local storage backup...");
+
+            // 1. Post credentials to backend
+            const saveCredsRes = await fetch("/api/credentials/save", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(credsToSync)
+            });
+
+            // 2. Put settings to backend
+            let saveSettingsRes: Response | null = null;
+            if (settingsToSync) {
+              saveSettingsRes = await fetch("/api/settings", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(settingsToSync)
+              });
+            }
+
+            if (saveCredsRes.ok) {
+              console.log("✅ Credentials and styles successfully synchronized and restored!");
+              toast({
+                title: "🔄 تمت استعادة البيانات الإعدادات تلقائياً",
+                description: "تمت استعادة كافة المفاتيح والإعدادات الخاصة بك وتلقيمها في البوت تلقائياً لتفادي مسح البيانات عند إعادة تشغيل Hugging Face! 🚀",
+              });
+
+              // Trigger a small delay and reload so pages can get fresh state
+              setTimeout(() => {
+                if (isMounted) window.location.reload();
+              }, 1200);
+              return;
+            }
+          }
+        }
+
+        // If the backend has valid credentials, treat them as the source of truth and update local storage backup
+        if (creds && creds.botToken && creds.geminiKey) {
+          const currentLocalCredsRaw = localStorage.getItem("do3ae_bot_credentials");
+          const incomingCredsStr = JSON.stringify(creds);
+          if (incomingCredsStr !== currentLocalCredsRaw) {
+            localStorage.setItem("do3ae_bot_credentials", incomingCredsStr);
+            console.log("💾 Backed up backend credentials into browser local storage.");
+          }
+        }
+
+        // Similarly keep browser local storage backup of settings updated with latest backend settings
+        if (settings && Object.keys(settings).length > 2) {
+          const currentLocalSettingsRaw = localStorage.getItem("do3ae_bot_settings");
+          const incomingSettingsStr = JSON.stringify(settings);
+          if (incomingSettingsStr !== currentLocalSettingsRaw) {
+            localStorage.setItem("do3ae_bot_settings", incomingSettingsStr);
+            console.log("💾 Backed up backend settings into browser local storage.");
+          }
+        }
+
+      } catch (err) {
+        console.error("Failed to execute syncStorage:", err);
+      } finally {
+        syncInProgress = false;
+      }
+    }
+
+    // Run first sync immediately on component mount
+    syncStorage();
+
+    // Setup an interval to back up the latest user configurations from backend to localStorage regularly (every 6 seconds)
+    const interval = setInterval(syncStorage, 6000);
+
+    // Also run sync whenever window or tab comes into focus
+    const onFocus = () => {
+      syncStorage();
+    };
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [toast]);
 
   return (
     <div className={cn(

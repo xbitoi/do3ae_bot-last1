@@ -225,6 +225,33 @@ function getFontsDir(): string {
 // ── Persistent data helper ───────────────────────────────────────────────
 function getPersistentPath(filename: string): string {
   try {
+    // Support Hugging Face persistent storage mount `/data` if available and writable
+    const hfDataDir = "/data";
+    if (fs.existsSync(hfDataDir)) {
+      try {
+        const testFile = path.join(hfDataDir, `.write_test_${Date.now()}`);
+        fs.writeFileSync(testFile, "test", "utf8");
+        fs.unlinkSync(testFile);
+        
+        const hfTarget = path.join(hfDataDir, filename);
+        
+        // Migration: If file exists in local but not yet in /data, migrate it!
+        const parentDir = typeof __dirname !== "undefined"
+          ? path.resolve(__dirname, "..")
+          : process.cwd();
+        const localPath = path.join(parentDir, filename);
+        if (fs.existsSync(localPath) && !fs.existsSync(hfTarget)) {
+          try {
+            fs.copyFileSync(localPath, hfTarget);
+          } catch {}
+        }
+        
+        return hfTarget;
+      } catch (err) {
+        // Fall back to local if not writable
+      }
+    }
+
     const parentDir = typeof __dirname !== "undefined"
       ? path.resolve(__dirname, "..")
       : process.cwd();
@@ -366,12 +393,59 @@ export function saveCredentials(creds: BotCreds) {
 }
 
 export function loadCredentials(): BotCreds | null {
+  let creds: Partial<BotCreds> = {};
   try {
     if (fs.existsSync(CREDS_FILE)) {
-      return JSON.parse(fs.readFileSync(CREDS_FILE, "utf8"));
+      creds = JSON.parse(fs.readFileSync(CREDS_FILE, "utf8")) || {};
     }
   } catch {}
-  return null;
+
+  // Dynamic fallback to environment variables (ideal for Hugging Face persistent settings/secrets)
+  const envBotToken = process.env["BOT_TOKEN"] || process.env["TELEGRAM_BOT_TOKEN"];
+  if (envBotToken && !creds.botToken) {
+    creds.botToken = envBotToken.trim();
+  }
+  const envGeminiKey = process.env["GEMINI_KEY"] || process.env["GEMINI_API_KEY"];
+  if (envGeminiKey && !creds.geminiKey) {
+    creds.geminiKey = envGeminiKey.trim();
+  }
+  const envGemini2 = process.env["GEMINI_KEY2"];
+  if (envGemini2 && !creds.geminiKey2) {
+    creds.geminiKey2 = envGemini2.trim();
+  }
+  const envGemini3 = process.env["GEMINI_KEY3"];
+  if (envGemini3 && !creds.geminiKey3) {
+    creds.geminiKey3 = envGemini3.trim();
+  }
+  const envGemini4 = process.env["GEMINI_KEY4"];
+  if (envGemini4 && !creds.geminiKey4) {
+    creds.geminiKey4 = envGemini4.trim();
+  }
+  const envGemini5 = process.env["GEMINI_KEY5"];
+  if (envGemini5 && !creds.geminiKey5) {
+    creds.geminiKey5 = envGemini5.trim();
+  }
+  const envGroq = process.env["GROQ_KEY"] || process.env["GROQ_API_KEY"];
+  if (envGroq && !creds.groqKey) {
+    creds.groqKey = envGroq.trim();
+  }
+  const envLmUrl = process.env["LM_STUDIO_URL"];
+  if (envLmUrl && !creds.lmStudioUrl) {
+    creds.lmStudioUrl = envLmUrl.trim();
+  }
+  const envLmKey = process.env["LM_STUDIO_KEY"];
+  if (envLmKey && !creds.lmStudioKey) {
+    creds.lmStudioKey = envLmKey.trim();
+  }
+  const envTgApi = process.env["TELEGRAM_API_URL"] || process.env["BOT_API_URL"];
+  if (envTgApi && !creds.telegramApiUrl) {
+    creds.telegramApiUrl = envTgApi.trim();
+  }
+
+  if (creds.botToken && creds.geminiKey) {
+    return creds as BotCreds;
+  }
+  return Object.keys(creds).length > 0 ? (creds as BotCreds) : null;
 }
 
 export function getCleanTelegramApiUrl(customUrl?: string): string {
